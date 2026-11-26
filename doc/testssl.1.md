@@ -341,6 +341,16 @@ Rating automatically gets disabled, to not give a wrong or misleading grade, whe
 
 `--severity <severity>` For CSV and both JSON outputs this will only add findings to the output file if a severity is equal or higher than the `severity` value specified. Allowed are `<LOW|MEDIUM|HIGH|CRITICAL>`. WARN is another level which translates to a client-side scanning error or problem. Thus you will always see them in a file if they occur.
 
+### Structured JSON, baselines and failure classification
+
+The flat JSON emitted by `--jsonfile` is designed for machine consumption but cipher details are still packed into one `finding` string and unsupported protocols are only recorded as "not offered" without a reason. For asset inventories and historical baseline comparisons an additional standard-library Python tool is shipped in `utils/tlsbaseline/` (entry point `utils/tls_baseline.py`):
+
+* `utils/tls_baseline.py scan <target> -o scan.json` runs testssl.sh, normalises the flat JSON into a stable document (`protocols`, per-cipher items with `hex_code`/IANA name/key exchange/bits, keyed by the testssl cipher id such as `cipher-tls1_2_xc030`) and classifies every non-offered protocol via raw TLS probes into stable failure categories (`dns_failure`, `tcp_refused`, `tcp_timeout`, `tls_alert` with the alert code/name, `tls_connection_closed`, ...).
+* `utils/tls_baseline.py diff <baseline.json> <current.json>` compares two structured documents by stable cipher key and reports the exact cipher items that were added, removed or changed, plus protocol and failure-category changes. `--exit-code` makes it return exit code 2 on differences for CI use.
+* `utils/tls_baseline.py probe <host> <port> <protocol>` performs a single raw handshake probe for manual triage.
+
+See `utils/tlsbaseline/README.md` for the document schema and `t/70_tls_baseline.t` for the acceptance test covering modern-cipher, legacy-cipher and handshake-failure targets.
+
 `--append` Normally, if an output file already exists and it has a file size greater zero, testssl.sh will prompt you to manually remove the file and exit with an error. `--append` however will append to this file, without a header. The environment variable APPEND does the same. Be careful using this switch/variable. A complementary option which overwrites an existing file doesn't exist per design.
 
 `--overwrite` Normally, if an output file already exists and it has a file size greater zero, testssl.sh will not allow you to overwrite this file. This option will do that **without any warning**. The environment variable OVERWRITE does the same. Be careful, you have been warned!

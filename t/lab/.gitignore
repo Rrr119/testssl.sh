@@ -1,0 +1,6 @@
+# Local lab artefacts: PKI material, testssl console output and scan
+# results. The fixtures directory holds example output for manual
+# inspection and is also covered by the repository-wide *.json rule.
+*
+!.gitignore
+!start_lab_servers.sh

@@ -30,3 +30,5 @@ tmp.html
 thumbs.db
 todo.md
 2do.md
+__pycache__/
+*.pyc
